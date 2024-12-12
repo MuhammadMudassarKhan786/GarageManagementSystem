@@ -1,0 +1,981 @@
+package application;
+
+import javafx.animation.PauseTransition;
+import javafx.animation.TranslateTransition;
+import javafx.application.Application;
+import javafx.geometry.Insets;
+import javafx.geometry.Pos;
+import javafx.scene.Scene;
+import javafx.scene.chart.BarChart;
+import javafx.scene.chart.CategoryAxis;
+import javafx.scene.chart.NumberAxis;
+import javafx.scene.chart.XYChart;
+import javafx.scene.control.*;
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
+import javafx.scene.layout.*;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Circle;
+import javafx.scene.shape.Rectangle;
+import javafx.stage.Stage;
+import javafx.util.Duration;
+
+import java.util.ArrayList;
+import java.util.List;
+
+public class gms extends Application {
+
+    private List<Car> carList = new ArrayList<>();
+    private double rentingRevenue = 3000;
+    private double servicingRevenue = 1700;
+    private double sellingRevenue = 5000;
+
+    private Scene personalInfoScene, managerScene, selectionScene, loginScene,loadingScene;
+    private String registeredEmail = null;
+    private String registeredPassword = null;
+    @Override
+    public void start(Stage primaryStage) {
+        primaryStage.setTitle("Garage Management System");
+        Scene loadingScene;
+        loadingScene = new Scene(new StackPane(new ProgressIndicator()), 600, 600);
+       
+        // --- Pre-populated Car List ---
+        carList.add(new Car("Toyota Corolla", "Sedan", 1000));
+        carList.add(new Car("Honda Civic", "Sedan", 1200));
+        carList.add(new Car("Ford F-150", "Truck", 1500));
+        carList.add(new Car("Tesla Model 3", "Electric", 2000));
+        carList.add(new Car("Mastang", "Hybrid", 1500));
+        // --- Personal Information Screen ---
+        VBox personalInfoLayout = new VBox(10);
+        personalInfoLayout.setPadding(new Insets(20));
+        personalInfoLayout.setAlignment(Pos.CENTER);
+
+        Label personalInfoLabel = new Label("Registration");
+        personalInfoLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 25px;");
+        personalInfoLabel.setTextFill(Color.BLANCHEDALMOND);
+
+        TextField nameField = new TextField();
+        nameField.setPromptText("Name");
+        nameField.setMaxWidth(250);
+
+        TextField contactField = new TextField();
+        contactField.setPromptText("Contact");
+        contactField.setMaxWidth(250);
+
+        TextField cnic = new TextField();
+        cnic.setPromptText("CNIC");
+        cnic.setMaxWidth(250);
+
+        TextField emailField = new TextField();
+        emailField.setPromptText("Email");
+        emailField.setMaxWidth(250);
+
+        PasswordField p = new PasswordField();
+        p.setPromptText("Password");
+        Tooltip pt = new Tooltip("Your password must contain letters and symbols. It must be at least 8 characters long.");
+        p.setTooltip(pt);
+        p.setMaxWidth(250);
+
+        PasswordField p1 = new PasswordField();
+        p1.setPromptText("Enter Password Again");
+        p1.setTooltip(pt);
+        p1.setMaxWidth(250);
+
+        Label lblMessage = new Label();
+
+        // ComboBox for role selection
+        ComboBox<String> roleComboBox = new ComboBox<>();
+        roleComboBox.getItems().addAll("Customer", "Manager");
+        roleComboBox.setPromptText("Role");
+        roleComboBox.setPrefWidth(250);
+
+        // Button for submitting personal info
+        Button submitInfoButton = new Button("SIGNUP");
+        submitInfoButton.setPrefWidth(250);
+        submitInfoButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        submitInfoButton.setOnAction(e -> {
+            String role = roleComboBox.getValue();
+            String email = emailField.getText();
+            String password = p.getText();
+            String confirmPassword = p1.getText();
+
+            // Validate that fields are not empty
+            if (email.isEmpty() || password.isEmpty() || confirmPassword.isEmpty() || role == null) {
+                showAlert(Alert.AlertType.ERROR, "Error", "Please fill in all fields and select a role!");
+                return;
+            }
+
+            // Check if passwords match
+            if (!password.equals(confirmPassword)) {
+                showAlert(Alert.AlertType.ERROR, "Error", "Passwords do not match!");
+                return;
+            }
+
+            // Store the registered email and password
+            registeredEmail = email;
+            registeredPassword = password;
+
+            // Proceed to the loading screen with a delay
+            primaryStage.setScene(loadingScene);
+        });
+
+        // --- Login Button at Top Right with Tooltip ---
+        Button loginButton = new Button("Login");
+        loginButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        Tooltip loginTooltip = new Tooltip("Click here if you are already registered.");
+        loginButton.setTooltip(loginTooltip);
+
+        loginButton.setOnAction(e -> {
+            primaryStage.setScene(loginScene);
+        });
+
+        // Top-right positioning for the login button
+        HBox topRightContainer = new HBox();
+        topRightContainer.setPadding(new Insets(10));
+        topRightContainer.setAlignment(Pos.TOP_RIGHT);
+        topRightContainer.getChildren().add(loginButton);
+
+        // Layout and background image setup
+        Image backgroundImage = new Image("file:C:/Users/dell/OneDrive - University of Engineering and Technology Taxila/Desktop/r.png");
+        ImageView imageView = new ImageView(backgroundImage);
+        imageView.setFitWidth(600);
+        imageView.setFitHeight(600);
+
+        StackPane stackPane = new StackPane();
+        stackPane.getChildren().addAll(imageView, personalInfoLayout, topRightContainer);
+
+        personalInfoLayout.getChildren().addAll(personalInfoLabel, nameField, contactField, cnic, emailField, p, p1, lblMessage, roleComboBox, submitInfoButton);
+
+        personalInfoScene = new Scene(stackPane, 600, 600, Color.GOLDENROD);
+
+     // --- Login Screen ---
+        VBox loginLayout = new VBox(10);
+        loginLayout.setPadding(new Insets(20));
+        loginLayout.setAlignment(Pos.CENTER);
+
+        // Login Label
+        Label loginLabel = new Label("Sign In");
+        loginLabel.setStyle("-fx-font-size: 25px; -fx-font-weight: bold;");
+        loginLabel.setTextFill(Color.BLANCHEDALMOND);
+
+        // Email Field
+        TextField loginNameField = new TextField();
+        loginNameField.setPromptText("Email");
+        loginNameField.setMaxWidth(250);
+
+        // Password Field
+        PasswordField loginPasswordField = new PasswordField();
+        loginPasswordField.setPromptText("Password");
+        loginPasswordField.setMaxWidth(250);
+
+        // Password Strength Label
+        Label passwordStrengthLabel = new Label();
+        passwordStrengthLabel.setText("Password Strength: ");
+        passwordStrengthLabel.setTextFill(Color.RED); // Default color is red for weak passwords
+
+        // Password Strength Checker
+        loginPasswordField.textProperty().addListener((observable, oldValue, newValue) -> {
+            String strength = checkPasswordStrength(newValue);
+            passwordStrengthLabel.setText("Password Strength: " + strength);
+
+            // Change the color based on password strength
+            if (strength.equals("Strong")) {
+                passwordStrengthLabel.setTextFill(Color.GREEN);
+            } else if (strength.equals("Medium")) {
+                passwordStrengthLabel.setTextFill(Color.ORANGE);
+            } else {
+                passwordStrengthLabel.setTextFill(Color.RED);
+            }
+        });
+
+        // Login Button
+        Button loginButton1 = new Button("LogIn");
+        loginButton1.setPrefWidth(200);
+        loginButton1.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        loginButton1.setOnAction(e -> {
+            String enteredEmail = loginNameField.getText();
+            String enteredPassword = loginPasswordField.getText();
+
+            if (enteredEmail.isEmpty() || enteredPassword.isEmpty()) {
+                showAlert1(Alert.AlertType.ERROR, "Login Error", "Please enter both email and password.");
+            } else if (registeredEmail == null || registeredPassword == null) {
+                showAlert1(Alert.AlertType.ERROR, "Login Error", "No registration found. Please register first.");
+            } else if (enteredEmail.equals(registeredEmail) && enteredPassword.equals(registeredPassword)) {
+                showAlert1(Alert.AlertType.INFORMATION, "Login Success", "Welcome back, " + enteredEmail + "!");
+                String role = roleComboBox.getValue();
+                primaryStage.setScene(loadingScene);
+
+                // Use PauseTransition for a smooth delay before switching scenes
+                PauseTransition pause = new PauseTransition(Duration.seconds(2));
+                pause.setOnFinished(event -> {
+                    if (role.equals("Manager")) {
+                        primaryStage.setScene(managerScene);  // Switch to manager login scene
+                    } else {
+                        primaryStage.setScene(selectionScene);  // Switch to customer login scene
+                    }
+                });
+                pause.play();
+            } else {
+                showAlert1(Alert.AlertType.ERROR, "Login Error", "Invalid email or password.");
+            }
+        });
+
+        // Back to Registration Button
+        Button backToRegisterButton = new Button("Registration");
+        Tooltip tt=new Tooltip("Go back to Registration.");
+        backToRegisterButton.setTooltip(tt);
+        backToRegisterButton.setPrefWidth(200);
+        backToRegisterButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+        backToRegisterButton.setOnAction(e -> {
+            primaryStage.setScene(personalInfoScene); // Assuming `registrationScene` is your registration screen scene
+        });
+
+        // Add all elements to the login layout
+        loginLayout.getChildren().addAll(
+            loginLabel,
+            loginNameField,
+            loginPasswordField,
+            passwordStrengthLabel,
+            loginButton1,
+            backToRegisterButton  // Add the back button here
+        );
+
+        // Background Image
+        ImageView imageView1 = new ImageView(backgroundImage);
+        imageView1.setFitWidth(600);
+        imageView1.setFitHeight(600);
+
+        // StackPane for Layout and Background
+        StackPane root = new StackPane();
+        root.getChildren().addAll(imageView1, loginLayout);
+
+        // Create the Scene
+        loginScene = new Scene(root, 600, 600);
+     // --- Company Logo Image ---
+        Image companyImage = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\logo.png");
+        ImageView companyImageView = new ImageView(companyImage);
+        companyImageView.setFitWidth(100);  // Adjust width as needed
+        companyImageView.setFitHeight(80);  // Adjust height as needed
+
+        // Create an HBox for the company image aligned to the top-left
+        HBox companyLayout = new HBox();
+        companyLayout.setPadding(new Insets(10));
+        companyLayout.setAlignment(Pos.TOP_LEFT);
+        companyLayout.getChildren().add(companyImageView);
+
+     // --- Manager Interface Elements ---
+        VBox managerLayout = new VBox(15);
+        managerLayout.setPadding(new Insets(20));
+        managerLayout.setAlignment(Pos.CENTER);
+
+        // Manager Dashboard Label
+        Label managerLabel = new Label("Manager Dashboard");
+        managerLabel.setStyle("-fx-font-size: 25px; -fx-font-weight: bold;");
+        managerLabel.setTextFill(Color.BLANCHEDALMOND);
+
+        // Buttons for various manager duties
+        Button viewCarListButton = new Button("View Car List");
+        Button registerCarButton = new Button("Register a Car for Sale/Rent");
+        Button viewRevenueButton = new Button("View Revenue");
+        Button manageEmployeesButton = new Button("Manage Employees");
+        Button viewFeedbackButton = new Button("View Customer Feedback");
+        Button generateReportsButton = new Button("Generate Reports");
+
+        // Set button dimensions for consistency
+        double buttonWidth = 250;
+        viewCarListButton.setPrefWidth(buttonWidth);
+        registerCarButton.setPrefWidth(buttonWidth);
+        viewRevenueButton.setPrefWidth(buttonWidth);
+        manageEmployeesButton.setPrefWidth(buttonWidth);
+        viewFeedbackButton.setPrefWidth(buttonWidth);
+        generateReportsButton.setPrefWidth(buttonWidth);
+
+        // --- Button Actions ---
+
+        // 1. View Car List Action
+        viewCarListButton.setOnAction(e -> {
+            StringBuilder carDetails = new StringBuilder("Car List:\n");
+            for (Car car : carList) {
+                carDetails.append(car.toString()).append("\n");
+            }
+            showAlert(Alert.AlertType.INFORMATION, "Car List", carDetails.toString());
+        });
+
+        // 2. Register Car Action
+        registerCarButton.setOnAction(e -> openRegisterCarWindow());
+
+        // 3. View Revenue Action
+        viewRevenueButton.setOnAction(e -> {
+            String revenueDetails = String.format(
+                "Renting Revenue: $%.2f\n" +
+                "Servicing Revenue: $%.2f\n" +
+                "Selling Revenue: $%.2f\n" +
+                "Total Revenue: $%.2f",
+                rentingRevenue, servicingRevenue, sellingRevenue,
+                rentingRevenue + servicingRevenue + sellingRevenue
+            );
+            showAlert(Alert.AlertType.INFORMATION, "Revenue Details", revenueDetails);
+        });
+
+        // 4. Manage Employees Action
+        manageEmployeesButton.setOnAction(e -> openManageEmployeesWindow());
+
+        // 5. View Feedback Action
+        viewFeedbackButton.setOnAction(e -> openFeedbackWindow());
+
+        // 6. Generate Reports Action
+        generateReportsButton.setOnAction(e -> openReportWindow());
+
+        // --- Logout Button ---
+        Button logoutButton = new Button("Logout");
+        logoutButton.setPrefWidth(buttonWidth);
+        logoutButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #d9534f; -fx-text-fill: white;");
+
+        // Logout Button Action: Navigate back to the login screen
+        logoutButton.setOnAction(e -> primaryStage.setScene(loginScene));
+
+        // Add all buttons to the manager layout, including the Logout button at the end
+        managerLayout.getChildren().addAll(
+            managerLabel,
+            viewCarListButton,
+            registerCarButton,
+            viewRevenueButton,
+            manageEmployeesButton,
+            viewFeedbackButton,
+            generateReportsButton,
+            logoutButton
+        );
+
+        // --- About Icon ---
+        Image aboutImage = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\aa.png");
+        ImageView aboutIcon = new ImageView(aboutImage);
+        aboutIcon.setFitWidth(30);
+        aboutIcon.setFitHeight(30);
+
+        // Tooltip for About Icon
+        Tooltip aboutTooltip = new Tooltip("About this Application");
+        Tooltip.install(aboutIcon, aboutTooltip);
+
+        // Action for About Icon (showing an alert with app info)
+        aboutIcon.setOnMouseClicked(e -> {
+            showAlert(Alert.AlertType.INFORMATION, "About Developer", 
+                "Developer: Muhammad Mudassar\n" +
+                "Email: mmk@gmail.com\n" +
+                "GitHub: github.com/muhammad\n" +
+                "Description: This Garage Management System was developed as part of a project to\n" +
+                "manage car rentals, sales, and services efficiently.\n\n" +
+                "Version: 1.0\n" +
+                "Date: June 2024"
+            );
+        });
+
+        // Create an HBox for positioning the About Icon at the top-right corner
+        HBox aboutLayout = new HBox();
+        aboutLayout.setPadding(new Insets(10));
+        aboutLayout.setAlignment(Pos.TOP_RIGHT);
+        aboutLayout.getChildren().add(aboutIcon);
+     // --- Top Layout Combining Company Image and About Icon ---
+        BorderPane topLayout = new BorderPane();
+        topLayout.setLeft(companyLayout);
+        topLayout.setRight(aboutLayout);
+     // --- Create a BorderPane to Layer Elements ---
+        BorderPane borderPane = new BorderPane();
+        borderPane.setCenter(managerLayout);
+        borderPane.setTop(topLayout);
+
+
+
+        // --- Background Image for Manager Interface ---
+        Image backgroundImage3 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\m3.png");
+        ImageView imageView3 = new ImageView(backgroundImage3);
+        imageView3.setFitWidth(600);
+        imageView3.setFitHeight(650);
+
+
+        // --- StackPane to Add Background Image ---
+        StackPane root1 = new StackPane();
+        root1.getChildren().addAll(imageView3, borderPane);
+
+        // --- Create the Manager Scene ---
+        managerScene = new Scene(root1, 600, 600);
+
+
+     // --- Customer Selection Screen ---
+        VBox selectionLayout = new VBox(15);
+        selectionLayout.setPadding(new Insets(20));
+        selectionLayout.setAlignment(Pos.CENTER);
+
+        // Customer Dashboard Label
+        Label sl = new Label("Customer Dashboard");
+        sl.setStyle("-fx-font-size: 35px; -fx-font-weight: bold;");
+        sl.setTextFill(Color.BLANCHEDALMOND);
+
+        // Selection Label
+        Label selectionLabel = new Label("Select an Option:");
+        selectionLabel.setStyle("-fx-font-size: 15px; -fx-font-weight: bold;");
+        selectionLabel.setTextFill(Color.NAVAJOWHITE);
+
+        // Buttons for Customer Actions
+        Button rentCarButton = new Button("Rent a Car");
+        Button registerCarButton1 = new Button("Register a Car for Sale/Rent");
+        Button buyCarButton = new Button("Buy a Car");
+        Button carServiceButton = new Button("Car Service");
+        Button submitReviewButton = new Button("Submit a Review");
+
+        // Set button dimensions for consistency
+        rentCarButton.setPrefWidth(250);
+        registerCarButton1.setPrefWidth(250);
+        buyCarButton.setPrefWidth(250);
+        carServiceButton.setPrefWidth(250);
+        submitReviewButton.setPrefWidth(250);
+
+        // Button Actions
+        rentCarButton.setOnAction(e -> openRentCarWindow());
+        registerCarButton1.setOnAction(e -> openRegisterCarWindow());
+        buyCarButton.setOnAction(e -> buycar());
+        carServiceButton.setOnAction(e -> carservice());
+        submitReviewButton.setOnAction(e -> openSubmitReviewWindow());
+
+        // Logout Button
+        Button logoutButton1 = new Button("Logout");
+        logoutButton1.setStyle("-fx-font-size: 14px; -fx-font-weight: bold; -fx-background-color: #d9534f; -fx-text-fill: white;");
+        logoutButton1.setPrefWidth(250);  
+
+        // Logout Button Action
+        logoutButton1.setOnAction(e -> {
+            primaryStage.setScene(loginScene); 
+        });
+
+        selectionLayout.getChildren().addAll(
+            sl,
+            selectionLabel,
+            rentCarButton,
+            registerCarButton1,
+            buyCarButton,
+            carServiceButton,
+            submitReviewButton,
+            logoutButton1  
+        );
+
+        // Background Image
+        Image backgroundImage6 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\m5.png");
+        ImageView imageView6 = new ImageView(backgroundImage6);
+        imageView6.setFitWidth(600);
+        imageView6.setFitHeight(650);
+        imageView6.setOpacity(0.9);
+        // --- About Icon ---
+        Image aboutImage1 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\aa.png");
+        ImageView aboutIcon1 = new ImageView(aboutImage1);
+        aboutIcon1.setFitWidth(30);
+        aboutIcon1.setFitHeight(30);
+
+        // Tooltip for About Icon
+        Tooltip aboutTooltip1 = new Tooltip("About this Application");
+        Tooltip.install(aboutIcon1, aboutTooltip1);
+
+        // Action for About Icon (showing an alert with app info)
+        aboutIcon1.setOnMouseClicked(e -> {
+            showAlert(Alert.AlertType.INFORMATION, "About Developer", 
+                "Developer: Muhammad Mudassar\n" +
+                "Email: mmk@gmail.com\n" +
+                "GitHub: github.com/muhammad\n" +
+                "Description: This Garage Management System was developed as part of a project to\n" +
+                "manage car rentals, sales, and services efficiently.\n\n" +
+                "Version: 1.0\n" +
+                "Date: June 2024"
+            );
+        });
+
+        // Create an HBox for positioning the About Icon at the top-right corner
+        HBox aboutLayout1 = new HBox();
+        aboutLayout1.setPadding(new Insets(10));
+        aboutLayout1.setAlignment(Pos.TOP_RIGHT);
+        aboutLayout1.getChildren().add(aboutIcon1);
+     // --- Top Layout Combining Company Image and About Icon ---
+        BorderPane topLayout1 = new BorderPane();
+        topLayout1.setLeft(companyLayout);
+        topLayout1.setRight(aboutLayout1);
+     // --- Create a BorderPane to Layer Elements ---
+        BorderPane borderPane1 = new BorderPane();
+        borderPane1.setCenter(selectionLayout);
+        borderPane1.setTop(topLayout1);
+        // StackPane for Layout and Background
+        StackPane root111 = new StackPane();
+        root111.getChildren().addAll(imageView6,borderPane1);
+
+        // Create the Scene
+        selectionScene = new Scene(root111, 600, 600);
+
+        // Set Initial Scene
+        primaryStage.setScene(personalInfoScene);
+        primaryStage.show();
+    }
+        // Method to handle logout action (navigate to login window)
+       
+    private List<String> customerReviews = new ArrayList<>();
+
+    private void openSubmitReviewWindow() {
+        Stage reviewStage = new Stage();
+        reviewStage.setTitle("Submit a Review");
+
+        VBox reviewLayout = new VBox(15);
+        reviewLayout.setPadding(new Insets(20));
+        reviewLayout.setAlignment(Pos.CENTER);
+
+        Label reviewLabel = new Label("Enter Your Review:");
+        reviewLabel.setStyle("-fx-font-size: 18px; -fx-font-weight: bold;");
+
+        TextArea reviewTextArea = new TextArea();
+        reviewTextArea.setPromptText("Write your review here...");
+        reviewTextArea.setWrapText(true);
+        reviewTextArea.setPrefSize(300, 150);
+
+        Button submitButton = new Button("Submit");
+        submitButton.setStyle("-fx-font-size: 14px; -fx-font-weight: bold;");
+
+        submitButton.setOnAction(e -> {
+            String review = reviewTextArea.getText().trim();
+            if (!review.isEmpty()) {
+                customerReviews.add(review);
+                showAlert(Alert.AlertType.INFORMATION, "Review Submitted", "Thank you for your feedback!");
+                reviewTextArea.clear();
+                reviewStage.close();
+            } else {
+                showAlert(Alert.AlertType.ERROR, "Error", "Please enter a review before submitting.");
+            }
+        });
+
+        reviewLayout.getChildren().addAll(reviewLabel, reviewTextArea, submitButton);
+
+        Scene reviewScene = new Scene(reviewLayout, 400, 300);
+        reviewStage.setScene(reviewScene);
+        reviewStage.show();
+    }
+
+    private void openManageEmployeesWindow() {
+        Stage manageEmployeesStage = new Stage();
+        manageEmployeesStage.setTitle("Manage Employees");
+
+        VBox layout = new VBox(15);
+        layout.setPadding(new Insets(20));
+        layout.setAlignment(Pos.CENTER);
+
+        ListView<String> employeeListView = new ListView<>();
+        employeeListView.getItems().addAll("John Doe - Sales", "Jane Smith - Support", "Bob Johnson - Technician");
+
+        TextField newEmployeeField = new TextField();
+        newEmployeeField.setPromptText("Enter new employee");
+
+        Button addEmployeeButton = new Button("Add Employee");
+        addEmployeeButton.setOnAction(e -> {
+            String newEmployee = newEmployeeField.getText();
+            if (!newEmployee.isEmpty()) {
+                employeeListView.getItems().add(newEmployee);
+                newEmployeeField.clear();
+            }
+        });
+
+        layout.getChildren().addAll(employeeListView, newEmployeeField, addEmployeeButton);
+        Scene scene = new Scene(layout, 400, 400);
+        manageEmployeesStage.setScene(scene);
+        manageEmployeesStage.show();
+    }
+
+    private void openReportWindow() {
+        Stage reportStage = new Stage();
+        reportStage.setTitle("Revenue Report");
+
+        CategoryAxis xAxis = new CategoryAxis();
+        xAxis.setLabel("Revenue Type");
+
+        NumberAxis yAxis = new NumberAxis();
+        yAxis.setLabel("Amount ($)");
+
+        BarChart<String, Number> barChart = new BarChart<>(xAxis, yAxis);
+        barChart.setTitle("Revenue Report");
+
+        XYChart.Series<String, Number> series = new XYChart.Series<>();
+        series.getData().add(new XYChart.Data<>("Renting", rentingRevenue));
+        series.getData().add(new XYChart.Data<>("Servicing", servicingRevenue));
+        series.getData().add(new XYChart.Data<>("Selling", sellingRevenue));
+
+        barChart.getData().add(series);
+
+        VBox layout = new VBox(barChart);
+        layout.setPadding(new Insets(20));
+        Scene scene = new Scene(layout, 600, 400);
+        reportStage.setScene(scene);
+        reportStage.show();
+    }
+    private void openFeedbackWindow() {
+        Stage feedbackStage = new Stage();
+        feedbackStage.setTitle("Customer Feedback");
+
+        VBox layout = new VBox(15);
+        layout.setPadding(new Insets(20));
+        layout.setAlignment(Pos.CENTER);
+
+        ListView<String> feedbackListView = new ListView<>();
+        feedbackListView.getItems().addAll("Great service!", "Car rental was smooth.", "Need more car options.");
+
+        layout.getChildren().add(feedbackListView);
+        Scene scene = new Scene(layout, 400, 300);
+        feedbackStage.setScene(scene);
+        feedbackStage.show();
+    }
+    private void showAlert1(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+
+
+    private void checkPasswords(PasswordField p, PasswordField p1, Label lblMessage) {
+    	     String password = p.getText();
+
+             String confirmPassword = p1.getText();
+
+             if (password.isEmpty() || confirmPassword.isEmpty()) {
+                 lblMessage.setTextFill(Color.RED);
+                 lblMessage.setText("Both fields are required.");
+             } else if (password.equals(confirmPassword)) {
+                 lblMessage.setTextFill(Color.GREEN);
+                 lblMessage.setText("Passwords match!");
+             } else {
+                 lblMessage.setTextFill(Color.RED);
+                 lblMessage.setText("Passwords do not match.");
+             }
+         
+		
+	}
+
+	private String checkPasswordStrength(String password) {
+        if (password == null || password.length() == 0) {
+            return "None";
+        }
+
+        boolean hasLetter = password.matches(".[a-zA-Z].");
+        boolean hasDigit = password.matches(".\\d.");
+        boolean hasSpecialChar = password.matches(".[!@#$%^&(),.?\":{}|<>].");
+
+        int length = password.length();
+
+        if (!hasLetter || !hasDigit || !hasSpecialChar) {
+            return "Weak";
+        }
+        if (length <= 5) {
+            return "Weak";
+        } else if (length == 8) {
+            return "Medium";
+        } else if (length >= 10) {
+            return "Strong";
+        } else {
+            return "Weak";
+        }
+    }
+
+    // Rent Car Window
+    private void openRentCarWindow() {
+        Stage rentCarStage = new Stage();
+        rentCarStage.setTitle("Rent a Car");
+        
+        VBox rentLayout = new VBox(10);
+        rentLayout.setPadding(new Insets(20));
+        rentLayout.setAlignment(Pos.CENTER);
+       
+        Label rentLabel = new Label("Select a Car to Rent:");
+        rentLabel.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        rentLabel.setTextFill(Color.GOLD);
+        ComboBox<Car> carComboBox = new ComboBox<>();
+        carComboBox.getItems().addAll(carList);
+        Label hl = new Label("Rent A Car");
+        hl.setStyle("-fx-font-weight: bold; -fx-font-size: 35px;");
+        hl.setTextFill(Color.BLANCHEDALMOND);
+        carComboBox.setPromptText("Available Cars");
+        carComboBox.setStyle("-fx-font-weight: bold; -fx-font-size: 13px;");
+        TextField nameField = new TextField();
+        nameField.setPromptText("Name");
+        nameField.setMaxWidth(250);
+        TextField a = new TextField();
+        a.setPromptText("Address");
+        a.setMaxWidth(250); 
+        TextField contactField = new TextField();
+        contactField.setPromptText("Contact no");
+        contactField.setMaxWidth(250);
+        TextField contactField2 = new TextField();
+        contactField2.setPromptText("Additional contact no");
+        contactField2.setMaxWidth(250);
+        TextField contactField3 = new TextField();
+        contactField3.setPromptText("CNIC");
+        contactField3.setMaxWidth(250);
+        TextField emailField = new TextField();
+        emailField.setPromptText("Email");
+        emailField.setMaxWidth(250);
+        Label needdriver=new Label("Driver Needed :");
+        needdriver.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        needdriver.setTextFill(Color.GOLD);
+        ToggleGroup g=new ToggleGroup();
+        RadioButton r1=new RadioButton("yes");
+        RadioButton r2=new RadioButton("no");
+        r1.setStyle("-fx-font-weight: bold; -fx-font-size: 11px;");
+        r1.setTextFill(Color.GOLD);
+        r2.setStyle("-fx-font-weight: bold; -fx-font-size: 11px;");
+        r2.setTextFill(Color.GOLD);
+        r1.setToggleGroup(g);
+        r2.setToggleGroup(g);
+        TextField cardNumberField = new TextField();
+        cardNumberField.setPromptText("Enter Card Number");
+        cardNumberField.setMaxWidth(250);
+        Button rentButton = new Button("Rent Car");
+        rentButton.setOnAction(e -> {
+            Car selectedCar = carComboBox.getValue();
+            if (selectedCar == null || cardNumberField.getText().isEmpty()) {
+                showAlert1(Alert.AlertType.ERROR, "Error", "Please select a car and enter card details.");
+            } else {
+                rentingRevenue += selectedCar.getPrice();
+                showAlert1(Alert.AlertType.INFORMATION, "Success",
+                        "Car rented successfully!\n" +
+                                "Car: " + selectedCar.getName() + "\n" +
+                                "Amount Paid: $" + selectedCar.getPrice() + "\n" +
+                                "Card Ending in: ****" + cardNumberField.getText().substring(cardNumberField.getText().length() - 4));
+                rentCarStage.close();
+            }
+        });
+
+        rentLayout.getChildren().addAll(hl,rentLabel, carComboBox,nameField,contactField,contactField2,contactField3,emailField, needdriver,r1,r2,cardNumberField,rentButton);
+        StackPane root111= new StackPane();
+        Image backgroundImage5 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\m6.png");
+        ImageView imageView5 = new ImageView(backgroundImage5);
+        imageView5.setFitWidth(1050);
+        imageView5.setFitHeight(650);
+
+        root111.getChildren().addAll(imageView5, rentLayout);
+
+        rentCarStage.setScene(new Scene(root111, 600, 600));
+        rentCarStage.show();
+    }
+
+    // Register Car Window
+    private void openRegisterCarWindow() {
+        Stage registerCarStage = new Stage();
+        registerCarStage.setTitle("Register a Car for Sale/Rent");
+       
+        VBox registerLayout = new VBox(10);
+        registerLayout.setPadding(new Insets(20));
+        registerLayout.setAlignment(Pos.CENTER);
+        
+        Label ol = new Label("Registration Of A Car");
+        ol.setStyle("-fx-font-weight: bold; -fx-font-size: 20px;");
+        TextField carNameField = new TextField();
+        carNameField.setPromptText("Car Name");
+        carNameField.setMaxWidth(250);
+        TextField carTypeField = new TextField();
+        carTypeField.setPromptText("Car Type");
+        carTypeField.setMaxWidth(250);
+        TextField carNameField1 = new TextField();
+        carNameField1.setPromptText("Chase no");
+        carNameField1.setMaxWidth(250);
+        TextField carTypeField2 = new TextField();
+        carTypeField2.setPromptText("year");
+        carTypeField2.setMaxWidth(250);
+        TextField carPriceField3 = new TextField();
+        carPriceField3.setPromptText("Engine");
+        carPriceField3.setMaxWidth(250);
+        Label q1=new Label("Car Quality :");
+        q1.setStyle("-fx-font-weight: bold;");
+        ToggleGroup q=new ToggleGroup();
+        RadioButton r1=new RadioButton("Imported");
+        RadioButton r2=new RadioButton("Local");
+        r1.setToggleGroup(q);
+        r2.setToggleGroup(q);
+        TextField carPriceField = new TextField();
+        carPriceField.setPromptText("Car Price");
+        carPriceField.setMaxWidth(250);
+        Button registerButton = new Button("Register Car");
+        registerButton.setOnAction(e -> {
+            String name = carNameField.getText();
+            String type = carTypeField.getText();
+            String priceText = carPriceField.getText();
+
+            if (name.isEmpty() || type.isEmpty() || priceText.isEmpty()) {
+                showAlert1(Alert.AlertType.ERROR, "Error", "Please fill in all fields.");
+                return;
+            }
+            try {
+                double price = Double.parseDouble(priceText);
+                carList.add(new Car(name, type, price));
+                showAlert1(Alert.AlertType.INFORMATION, "Success", "Car registered successfully!");
+                registerCarStage.close();
+            } catch (NumberFormatException ex) {
+                showAlert1(Alert.AlertType.ERROR, "Error", "Invalid price format.");
+            }
+        });
+
+        registerLayout.getChildren().addAll(ol,carNameField, carTypeField, carNameField1,carTypeField2,carPriceField3,q1,r1,r2,carPriceField, registerButton);
+        Image backgroundImage4 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\m4.png");
+        ImageView imageView4 = new ImageView(backgroundImage4);
+        imageView4.setFitWidth(600);
+        imageView4.setFitHeight(650);
+
+        // Create a StackPane to layer the background image and manager layout
+        
+        StackPane root111= new StackPane();
+        root111.getChildren().addAll(imageView4, registerLayout);
+        registerCarStage.setScene(new Scene(root111, 600, 600));
+        registerCarStage.show();
+    }
+
+    void buycar() {
+        Stage buyCarStage = new Stage();
+        buyCarStage.setTitle("Buy Car");
+
+        VBox buyLayout = new VBox(10);
+        buyLayout.setPadding(new Insets(20));
+        buyLayout.setAlignment(Pos.CENTER);
+        Label l1 = new Label("Buy Car");
+        l1.setStyle("-fx-font-weight: bold; -fx-font-size: 35px;");
+        l1.setTextFill(Color.BLANCHEDALMOND);
+        ComboBox<Car> carComboBox = new ComboBox<>();
+        carComboBox.getItems().addAll(carList);
+        carComboBox.setPromptText("Select a Car");
+        carComboBox.setStyle("-fx-font-weight: bold; -fx-font-size: 14px;");
+        TextField cardNumberField1 = new TextField();
+        cardNumberField1.setPromptText(" Buyer Name");
+        cardNumberField1.setMaxWidth(250);
+        TextField cardNumberField2 = new TextField();
+        cardNumberField2.setPromptText("Buyer Address");
+        cardNumberField2.setMaxWidth(250);
+        TextField cardNumberField3 = new TextField();
+        cardNumberField3.setPromptText("Phone no");
+        cardNumberField3.setMaxWidth(250);
+        TextField cardNumberField = new TextField();
+        cardNumberField.setPromptText("Enter Card Number");
+        cardNumberField.setMaxWidth(250);
+        Button buyButton = new Button("Buy");
+        buyButton.setOnAction(ev -> {
+            Car selectedCar = carComboBox.getValue();
+            if (selectedCar != null) {
+                sellingRevenue += selectedCar.getPrice();
+                carList.remove(selectedCar);
+                showAlert1(Alert.AlertType.INFORMATION, "Purchase Successful", "Car bought successfully!");
+                buyCarStage.close();
+            }
+        });
+
+        buyLayout.getChildren().addAll(l1,carComboBox, cardNumberField1, cardNumberField2, cardNumberField3, cardNumberField, buyButton);
+        StackPane root111= new StackPane();
+        Image backgroundImage6 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\m7.png");
+        ImageView imageView6= new ImageView(backgroundImage6);
+        imageView6.setFitWidth(800);
+        imageView6.setFitHeight(600);
+        root111.getChildren().addAll(imageView6, buyLayout);
+        buyCarStage.setScene(new Scene(root111, 600, 600));
+        buyCarStage.show();
+    }
+
+    void carservice() {
+        Stage serviceStage = new Stage();
+        serviceStage.setTitle("Car Service");
+
+        VBox serviceLayout = new VBox(10);
+        serviceLayout.setPadding(new Insets(20));
+        serviceLayout.setAlignment(Pos.CENTER);
+        
+        Label sl = new Label("Car Service");
+        sl.setStyle("-fx-font-weight: bold; -fx-font-size: 35px;");
+        sl.setTextFill(Color.DARKGOLDENROD);
+        TextField carNameField = new TextField();
+        carNameField.setPromptText("Car Name");
+        carNameField.setMaxWidth(250);
+        TextField carTypeField = new TextField();
+        carTypeField.setPromptText("Car Type");
+        carTypeField.setMaxWidth(250);
+        TextField carNameField1 = new TextField();
+        carNameField1.setPromptText("Chase no");
+        carNameField1.setMaxWidth(250);
+        TextField carTypeField2 = new TextField();
+        carTypeField2.setPromptText("year");
+        carTypeField2.setMaxWidth(250);
+        TextField carPriceField3 = new TextField();
+        carPriceField3.setPromptText("Engine");
+        carPriceField3.setMaxWidth(250);
+        Label q1=new Label("Car Quality :");
+        q1.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        q1.setTextFill(Color.DARKGOLDENROD);
+        Tooltip t1=new Tooltip();
+        t1.setText("ToTake car parts from the prespective reliable source");
+        q1.setTooltip(t1);
+        ToggleGroup q=new ToggleGroup();
+        RadioButton r1=new RadioButton("Imported");
+        r1.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        r1.setTextFill(Color.DARKGOLDENROD);
+        RadioButton r2=new RadioButton("Local");
+        r2.setStyle("-fx-font-weight: bold; -fx-font-size: 15px;");
+        r2.setTextFill(Color.DARKGOLDENROD);
+        r1.setToggleGroup(q);
+        r2.setToggleGroup(q);
+        TextField problemField = new TextField();
+        problemField.setPromptText("Describe Problem");
+        problemField.setMaxWidth(400);
+
+        Button submitServiceButton = new Button("Submit");
+        submitServiceButton.setOnAction(ev -> {
+            servicingRevenue += 50;
+            showAlert1(Alert.AlertType.INFORMATION, "Service", "Car serviced successfully! $50 added to servicing revenue.");
+        });
+        serviceLayout.getChildren().addAll(sl,carNameField,carTypeField, carNameField1,carTypeField2,carPriceField3, q1,r1,r2,problemField,submitServiceButton);
+        StackPane root111= new StackPane();
+        Image backgroundImage6 = new Image("file:C:\\Users\\dell\\OneDrive - University of Engineering and Technology Taxila\\Desktop\\m8.png");
+        ImageView imageView6= new ImageView(backgroundImage6);
+        imageView6.setFitWidth(600);
+        imageView6.setFitHeight(600);
+        imageView6.setOpacity(0.8);
+        root111.getChildren().addAll(imageView6, serviceLayout);
+
+        serviceStage.setScene(new Scene(root111, 600, 600));
+        serviceStage.show();
+    }
+
+    private void showAlert(Alert.AlertType alertType, String title, String message) {
+        Alert alert = new Alert(alertType);
+        alert.setTitle(title);
+        alert.setHeaderText(null);
+        alert.setContentText(message);
+        alert.showAndWait();
+    }
+
+    // Car Class
+    static class Car {
+        private String name;
+        private String type;
+        private double price;
+
+        public Car(String name, String type, double price) {
+            this.name = name;
+            this.type = type;
+            this.price = price;
+        }
+
+        public String getName() {
+            return name;
+        }
+
+        public double getPrice() {
+            return price;
+        }
+
+        @Override
+        public String toString() {
+            return name + " (" + type + ") - $" + price;
+        }
+    }
+
+    public static void main(String[] args) {
+        launch(args);
+    }
+}
